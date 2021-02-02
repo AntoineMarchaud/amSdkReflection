@@ -6,3 +6,4 @@ A simple app to test reflection to find private informations in a application fr
 - Kotlin Reflection
 - RecyclerView
 - Hilt
+- Read / Write local files
