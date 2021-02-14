@@ -41,10 +41,24 @@ class CustomReader(var mContext: Context) {
         }
 
         mScanner?.let {
-            Handler(Looper.getMainLooper()).post {
-                if (it.hasNextLine())
+            if (it.hasNextLine()) {
+                Handler(Looper.getMainLooper()).post {
                     Toast.makeText(mContext, "$TAG : ${it.nextLine()}", Toast.LENGTH_SHORT).show()
+                }
             }
+        }
+    }
+
+    fun getNewLine(): String? {
+        if (mInputStream == null && mScanner == null) {
+            initReader()
+        }
+
+        return mScanner?.let {
+            if (it.hasNextLine())
+                it.nextLine()
+            else
+                null
         }
     }
 

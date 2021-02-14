@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.ImageView
+import androidx.annotation.VisibleForTesting
 import androidx.recyclerview.widget.RecyclerView
 import com.example.amsdkreflection.R
 import kotlinx.coroutines.GlobalScope
@@ -25,14 +26,12 @@ class CsAnalytics(private val mContext: Context) {
     }
 
 
-    private var mReader: CustomReader = CustomReader(mContext)
+    var mReader: CustomReader = CustomReader(mContext)
 
     // for example :
     // savedPets[DOGS] = "1, 10 ..."
     // savedPets[CATS] = "2, 11..."
-
     private val mSavedPets = ConcurrentHashMap<String, HashSet<Int>>()
-
 
     // custom Debouncer WITHOUT library
     private var mLastTimeClick = System.currentTimeMillis()
@@ -69,19 +68,27 @@ class CsAnalytics(private val mContext: Context) {
         }
     }
 
+    @VisibleForTesting
+    fun getEntry(position: Int) = mSavedPets.entries.firstOrNull { list -> list.value.contains(position) }
+
+    @VisibleForTesting
+    fun getNumberAnimalsBefore(setPosition: HashSet<Int>, position: Int) = setPosition.count { it <= position }
+
+
+    private fun getTextToDisplay(position: Int): String? {
+        //Displays the pop-up (Toast) with the dog or cat count.
+        return getEntry(position)?.let { oneEntry ->
+            val numberToDisplay = getNumberAnimalsBefore(oneEntry.value, position)
+            mContext.getString(R.string.ToastText, position, numberToDisplay, oneEntry.key)
+        }
+    }
+
 
     fun trigger(holder: RecyclerView.ViewHolder, position: Int) {
 
         if (position < 0) return
 
-        //Displays the pop-up (Toast) with the dog or cat count.
-        mSavedPets.entries.firstOrNull { list ->
-            list.value.contains(position)
-        }?.let { oneEntry ->
-            val numberToDisplay = oneEntry.value.count {
-                it <= position
-            }
-            val toDisplay = mContext.getString(R.string.ToastText, position, numberToDisplay, oneEntry.key)
+        getTextToDisplay(position)?.let { toDisplay ->
 
             // uncomment if you want a toast
             //Toast.makeText(mContext, toDisplay, Toast.LENGTH_SHORT).show()
@@ -94,6 +101,7 @@ class CsAnalytics(private val mContext: Context) {
 
             // coroutine : not blocking
             mJobDebounce = launchDebounce(toDisplay)
+
         }
 
         mLastTimeClick = System.currentTimeMillis()
