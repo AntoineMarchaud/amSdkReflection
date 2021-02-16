@@ -7,3 +7,4 @@ A simple app to test reflection to find private informations in a application fr
 - RecyclerView
 - Hilt
 - Read / Write local files
+- Espresso tests
